@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EasyOrder | 상품 관리</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style th:replace="~{fragments/header :: header-styles}"></style>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .page-header h1 {
+            font-size: 1.875rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .page-header p {
+            color: var(--text-sub);
+            font-size: 0.875rem;
+            margin: 0.5rem 0 0 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .table-container { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background-color: #f8fafc; padding: 0.75rem 1.5rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-sub); border-bottom: 1px solid var(--border-color); }
+        td { padding: 1rem 1.5rem; font-size: 0.875rem; border-bottom: 1px solid var(--border-color); transition: background-color 0.2s; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: #f3f4f6; cursor: pointer; }
+        
+        .no-text { color: var(--text-sub); font-family: monospace; font-weight: 500; }
+        .price-text { font-weight: 600; color: var(--primary-color); }
+
+        /* Badge Styles */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.625rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-active { background-color: #d1fae5; color: #065f46; }
+        .badge-stopped { background-color: #f3f4f6; color: #374151; }
+
+        /* Button Styles */
+        .btn-action {
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-stop { background-color: #fff; border-color: #d1d5db; color: #374151; }
+        .btn-stop:hover { background-color: #f9fafb; border-color: #9ca3af; }
+        
+        .btn-new { background-color: #3b82f6; color: white; border: none; }
+        .btn-new:hover { background-color: #2563eb; }
+
+        .btn-restore-green { background-color: #10b981; color: white; border: none; }
+        .btn-restore-green:hover { background-color: #059669; }
+
+        input[type="checkbox"] {
+            width: 1.125rem;
+            height: 1.125rem;
+            cursor: pointer;
+            accent-color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+
+    <div th:replace="~{fragments/header :: headerMain}"></div>
+    <div th:replace="~{fragments/header :: navMenu(activeMenu='list')}"></div>
+
+    <div class="container">
+        <header class="page-header">
+            <div>
+                <h1>상품 관리</h1>
+                <p>전체 상품의 판매 상태를 관리할 수 있습니다.</p>
+            </div>
+            <div class="header-actions">
+                <button type="button" class="btn-action btn-new" onclick="location.href='/products/new'">상품등록</button>
+                <button type="button" class="btn-action btn-stop" onclick="handleAction('delete')">판매중지</button>
+                <button type="button" class="btn-action btn-restore-green" onclick="handleAction('restore')">판매활성화</button>
+            </div>
+            </header>
+
+        <main class="card">
+            <form id="actionForm" method="post">
+                <input type="hidden" name="page" th:value="${products.currentPage}">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 48px;"><input type="checkbox" id="selectAll" onclick="toggleAll(this)"></th>
+                                <th style="width: 60px;">No</th>
+                                <th style="width: 100px;">판매상태</th>
+                                <th>상품명</th>
+                                <th>가격</th>
+                                <th>재고</th>
+                                <th>생성일</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="product, stat : ${products.content}" 
+                                th:onclick="|location.href='/products/detail/${product.productId}'|">
+                                <td th:onclick="event.stopPropagation()">
+                                    <input type="checkbox" name="productIds" th:value="${product.productId}" class="item-checkbox">
+                                </td>
+                                <td>
+                                    <span class="no-text" th:text="${products.currentPage * 10 + stat.count}"></span>
+                                </td>
+                                <td>
+                                    <span th:if="${!product.deleteYn}" class="badge badge-active">판매중</span>
+                                    <span th:if="${product.deleteYn}" class="badge badge-stopped">판매중지</span>
+                                </td>
+                                <td th:text="${product.name}" style="font-weight: 500;"></td>
+                                <td><span class="price-text" th:text="${#numbers.formatInteger(product.price, 0, 'COMMA')} + '원'"></span></td>
+                                <td><span th:text="${product.stock} + '개'"></span></td>
+                                <td style="color: var(--text-sub);" th:text="${product.createdAt != null ? #temporals.format(product.createdAt, 'yyyy-MM-dd HH:mm') : '-'}"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+
+            <div class="pagination-container" th:if="${products.totalPages > 0}">
+                <div class="pagination-info">
+                    전체 <span th:text="${products.totalElements}"></span>개 중 현재 <span th:text="${products.currentPage + 1}"></span>페이지
+                </div>
+                <nav class="pagination-nav">
+                    <a th:href="${products.currentPage > 0 ? '/products/list?page=' + (products.currentPage - 1) : 'javascript:void(0)'}" th:classappend="${products.currentPage == 0} ? 'disabled' : ''">&lsaquo;</a>
+                    <a th:each="i : ${#numbers.sequence(0, products.totalPages - 1)}" th:href="@{/products/list(page=${i})}" th:text="${i + 1}" th:classappend="${i == products.currentPage} ? 'active' : ''"></a>
+                    <a th:href="${products.currentPage < products.totalPages - 1 ? '/products/list?page=' + (products.currentPage + 1) : 'javascript:void(0)'}" th:classappend="${products.currentPage >= products.totalPages - 1} ? 'disabled' : ''">&rsaquo;</a>
+                </nav>
+            </div>
+        </main>
+    </div>
+
+    <script th:inline="javascript">
+        function toggleAll(source) {
+            const checkboxes = document.querySelectorAll('.item-checkbox');
+            checkboxes.forEach(cb => cb.checked = source.checked);
+        }
+
+        function handleAction(action) {
+            const selected = document.querySelectorAll('.item-checkbox:checked');
+            if (selected.length === 0) {
+                alert('상품을 선택해주세요.');
+                return;
+            }
+
+            let message = '';
+            let url = '';
+
+            if (action === 'delete') {
+                message = '선택한 상품 판매를 중지하시겠습니까?';
+                url = '/products/delete';
+            } else if (action === 'restore') {
+                message = '선택한 상품을 다시 판매하시겠습니까?';
+                url = '/products/restore';
+            }
+
+            if (confirm(message)) {
+                const form = document.getElementById('actionForm');
+                form.action = url;
+                form.submit();
+            }
+        }
+    </script>
+</body>
+</html>
