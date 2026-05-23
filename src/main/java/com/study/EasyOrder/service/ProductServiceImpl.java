@@ -61,22 +61,30 @@ public class ProductServiceImpl implements ProductService {
 
     /** 상품 목록 조회 */
     @Override
-    public ProductPageResponse findAll(int page, boolean activeOnly) {
+    public ProductPageResponse findAll(int page, boolean activeOnly, String search) {
         // 1. 페이징 및 정렬 조건 설정
-        // PageRequest.of(페이지번호, 한_페이지당_데이터_개수, 정렬조건)
         Pageable pageable = PageRequest.of(page, 8, Sort.by(Sort.Direction.DESC, "productId"));
 
         // 2. JPA가 조회 결과를 담아올 Page 객체 변수 선언
-        // 데이터 목록(List)과 '전체 페이지 수', '전체 데이터 개수' 등 페이징에 필요한 메타데이터를 함께 가지고 있습니다.
         Page<Product> productPage;
 
-        // 3. 판매 상태에 따른 분개 처리
+        // 3. 검색어 유무 및 판매 상태에 따른 분개 처리
+        boolean hasSearch = search != null && !search.trim().isEmpty();
+
         if (activeOnly) {
             // 판매중인 상품만 조회
-            productPage = productRepository.findByDeleteYnFalse(pageable);
+            if (hasSearch) {
+                productPage = productRepository.findByDeleteYnFalseAndNameContainingIgnoreCase(search.trim(), pageable);
+            } else {
+                productPage = productRepository.findByDeleteYnFalse(pageable);
+            }
         } else {
-            // 판매중, 판매중지 상품 모두 조회
-            productPage = productRepository.findAll(pageable);
+            // 판매중, 판매중지 상품 모두 조회 (관리자 페이지 검색)
+            if (hasSearch) {
+                productPage = productRepository.findByNameContainingIgnoreCase(search.trim(), pageable);
+            } else {
+                productPage = productRepository.findAll(pageable);
+            }
         }
 
         // 4. 엔티티(Entity)를 응답용 DTO(Data Transfer Object)로 변환
@@ -179,6 +187,11 @@ public class ProductServiceImpl implements ProductService {
 
             // 고유 파일명 생성
             String originalFilename = image.getOriginalFilename();
+            // MultipartFile.getOriginalFilename()이 null이거나 비어있는 경우 체크
+            if (originalFilename == null || originalFilename.isEmpty()) {
+                return null;
+            }
+
             String uuid = UUID.randomUUID().toString();
             String savedFilename = uuid + "_" + originalFilename;
 

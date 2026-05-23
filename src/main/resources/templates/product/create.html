@@ -51,7 +51,7 @@
 </head>
 <body>
 
-    <div th:replace="~{fragments/header :: headerMain}"></div>
+    <div th:replace="~{fragments/header :: headerMain(showSearch=false)}"></div>
     <div th:replace="~{fragments/header :: navMenu(activeMenu='')}"></div>
 
     <div class="edit-container">
@@ -103,7 +103,9 @@
             </div>
 
             <div class="edit-footer">
-                <button type="button" class="btn btn-cancel" th:onclick="|location.href='/products/list'|">취소</button>
+                <button type="button" class="btn btn-cancel" 
+                        th:data-url="@{/products/list}"
+                        onclick="location.href=this.getAttribute('data-url')">취소</button>
                 <button type="submit" class="btn btn-save">상품 등록하기</button>
             </div>
         </form>

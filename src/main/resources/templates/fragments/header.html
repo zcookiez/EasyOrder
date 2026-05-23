@@ -160,22 +160,62 @@
 </head>
 <body>
 
-<header th:fragment="headerMain" class="main-header">
+<header th:fragment="headerMain(showSearch)" class="main-header">
     <div class="header-logo">
         <a th:href="@{/products/gallery}">EasyOrder</a>
     </div>
-    <div class="header-search">
+    <div class="header-search" th:if="${showSearch != false}">
         <div class="search-wrapper">
             <span class="search-icon">🔍</span>
-            <input type="text" class="search-input" placeholder="상품 검색..." readonly>
+            <input type="text" id="globalSearchInput" class="search-input" 
+                   placeholder="검색어 입력 후 엔터(Enter)..." th:value="${search}"
+                   onkeypress="handleSearch(event)">
         </div>
     </div>
+
+    <script th:inline="javascript" th:if="${showSearch != false}">
+        function handleSearch(event) {
+            // 엔터 키(Enter)가 눌렸을 때만 검색 실행
+            if (event.key === 'Enter') {
+                const value = event.target.value;
+                const currentPath = window.location.pathname;
+                let targetUrl = '/products/gallery'; // 기본 경로 (갤러리)
+                
+                // 1. 관리자 상품 목록 페이지에 있을 때
+                if (currentPath.includes('/products/list')) {
+                    targetUrl = '/products/list';
+                } 
+                // 2. 주문 관리 목록 페이지에 있을 때
+                else if (currentPath.includes('/orders/list')) {
+                    targetUrl = '/orders/list';
+                }
+                
+                // 검색 실행 (URL 이동)
+                location.href = `${targetUrl}?search=${encodeURIComponent(value)}`;
+            }
+        }
+
+        // 페이지 로드 시 검색창에 포커스 유지 (검색어 입력 후 연속 검색 편의성)
+        window.onload = function() {
+            const input = document.getElementById('globalSearchInput');
+            if (!input) return;
+
+            if (input.value) {
+                input.focus();
+                // 커서를 텍스트 맨 뒤로 이동
+                const val = input.value;
+                input.value = '';
+                input.value = val;
+            }
+        }
+    </script>
 </header>
 
 <nav th:fragment="navMenu(activeMenu)" class="main-nav">
     <a th:href="@{/products/list}" class="nav-item" 
        th:classappend="${activeMenu == 'list' ? 'active' : ''}">상품관리</a>
-    <span class="nav-item disabled">주문관리</span>
+    <a th:href="@{/orders/list}" class="nav-item"
+       th:classappend="${activeMenu == 'orderList' ? 'active' : ''}">주문관리</a>
 </nav>
 
 </body>

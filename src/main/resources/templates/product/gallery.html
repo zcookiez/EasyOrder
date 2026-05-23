@@ -25,7 +25,7 @@
 </head>
 <body>
 
-    <div th:replace="~{fragments/header :: headerMain}"></div>
+    <div th:replace="~{fragments/header :: headerMain(showSearch=true)}"></div>
     <div th:replace="~{fragments/header :: navMenu(activeMenu='gallery')}"></div>
 
     <div class="container">
@@ -35,11 +35,12 @@
         </header>
 
         <main>
-            <div class="gallery-grid">
+            <div class="gallery-grid" th:if="${!#lists.isEmpty(products.content)}">
                 <div class="product-card" th:each="product : ${products.content}"
-                     th:onclick="|location.href='/products/gallery/${product.productId}'|">
+                     th:data-url="@{/products/gallery/{id}(id=${product.productId}, page=${products.currentPage}, search=${(search != null && !search.isEmpty()) ? search : ''})}"
+                     onclick="location.href=this.getAttribute('data-url')">
                     <div class="card-img-wrapper">
-                        <img th:src="${product.imageUrl != null ? product.imageUrl : '/images/default/no-image.png'}" class="card-img">
+                        <img th:src="${(product.imageUrl != null && !#strings.isEmpty(product.imageUrl)) ? product.imageUrl : '/images/default/no-image.png'}" class="card-img">
                     </div>
                     <div class="card-content">
                         <h3 class="product-name" th:text="${product.name}"></h3>
@@ -48,11 +49,21 @@
                 </div>
             </div>
 
+            <!-- 검색 결과 없음 안내 -->
+            <div th:if="${#lists.isEmpty(products.content)}" style="text-align: center; padding: 5rem 0;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+                <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">검색 결과가 없습니다</h3>
+                <p style="color: var(--text-sub);">다른 검색어를 입력하거나 철자를 확인해보세요.</p>
+                <a th:href="@{/products/gallery}" style="display: inline-block; margin-top: 1.5rem; color: var(--primary-color); text-decoration: none; font-weight: 600;">전체 상품 보기</a>
+            </div>
+
             <div class="pagination-container" th:if="${products.totalPages > 0}">
                 <nav class="pagination-nav">
-                    <a th:href="${products.currentPage > 0 ? '/products/gallery?page=' + (products.currentPage - 1) : 'javascript:void(0)'}" th:classappend="${products.currentPage == 0} ? 'disabled' : ''">&lt;</a>
-                    <a th:each="i : ${#numbers.sequence(0, products.totalPages - 1)}" th:href="@{/products/gallery(page=${i})}" th:text="${i + 1}" th:classappend="${i == products.currentPage} ? 'active' : ''"></a>
-                    <a th:href="${products.currentPage < products.totalPages - 1 ? '/products/gallery?page=' + (products.currentPage + 1) : 'javascript:void(0)'}" th:classappend="${products.currentPage >= products.totalPages - 1} ? 'disabled' : ''">&gt;</a>
+                    <a th:href="${products.currentPage > 0 ? '/products/gallery?page=' + (products.currentPage - 1) + (search != null ? '&search=' + search : '') : 'javascript:void(0)'}" th:classappend="${products.currentPage == 0} ? 'disabled' : ''">&lt;</a>
+                    <a th:each="i : ${#numbers.sequence(0, products.totalPages - 1)}" 
+                       th:href="@{/products/gallery(page=${i}, search=${search})}" 
+                       th:text="${i + 1}" th:classappend="${i == products.currentPage} ? 'active' : ''"></a>
+                    <a th:href="${products.currentPage < products.totalPages - 1 ? '/products/gallery?page=' + (products.currentPage + 1) + (search != null ? '&search=' + search : '') : 'javascript:void(0)'}" th:classappend="${products.currentPage >= products.totalPages - 1} ? 'disabled' : ''">&gt;</a>
                 </nav>
             </div>
         </main>

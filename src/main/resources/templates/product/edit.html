@@ -51,7 +51,7 @@
 </head>
 <body>
 
-    <div th:replace="~{fragments/header :: headerMain}"></div>
+    <div th:replace="~{fragments/header :: headerMain(showSearch=false)}"></div>
     <div th:replace="~{fragments/header :: navMenu(activeMenu='')}"></div>
 
     <div class="edit-container">
@@ -63,6 +63,8 @@
 
             <div class="edit-content">
                 <!-- Image Section -->
+                <input type="hidden" name="page" th:value="${currentPage}">
+                <input type="hidden" name="search" th:value="${search}">
                 <div class="image-section">
                     <label style="font-size: 0.875rem; font-weight: 600; color: var(--text-sub);">상품 이미지</label>
                     <div class="image-box">
@@ -115,7 +117,9 @@
             </div>
 
             <div class="edit-footer">
-                <button type="button" class="btn btn-cancel" th:onclick="|location.href='/products/detail/${product.productId}'|">취소</button>
+                <button type="button" class="btn btn-cancel" 
+                        th:data-url="@{/products/detail/{id}(id=${product.productId}, page=${currentPage}, search=${search})}"
+                        onclick="location.href=this.getAttribute('data-url')">취소</button>
                 <button type="submit" class="btn btn-save">저장</button>
             </div>
         </form>

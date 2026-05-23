@@ -78,14 +78,14 @@
 </head>
 <body>
 
-    <div th:replace="~{fragments/header :: headerMain}"></div>
+    <div th:replace="~{fragments/header :: headerMain(showSearch=false)}"></div>
     <div th:replace="~{fragments/header :: navMenu(activeMenu='gallery')}"></div>
 
     <div class="detail-container">
         <!-- Top Section -->
         <div class="detail-top">
             <div class="image-box">
-                <img th:src="${product.imageUrl != null ? product.imageUrl : '/images/default/no-image.png'}" 
+                <img th:src="${(product.imageUrl != null && !#strings.isEmpty(product.imageUrl)) ? product.imageUrl : '/images/default/no-image.png'}" 
                      th:alt="${product.name}" class="main-img">
             </div>
             
@@ -105,23 +105,30 @@
                 </ul>
 
                 <div class="order-section" th:if="${product.stock > 0}">
-                    <label class="quantity-label">주문 수량</label>
-                    <div class="quantity-control">
-                        <button type="button" class="qty-btn" id="minusBtn" onclick="changeQty(-1)">-</button>
-                        <input type="number" id="quantity" class="qty-input" value="1" min="1" th:max="${product.stock}" readonly>
-                        <button type="button" class="qty-btn" id="plusBtn" onclick="changeQty(1)">+</button>
-                    </div>
+                    <form th:action="@{/orders}" method="post">
+                        <input type="hidden" name="productId" th:value="${product.productId}">
+                        <input type="hidden" name="price" th:value="${product.price}">
+                        <input type="hidden" name="page" th:value="${currentPage}">
+                        <input type="hidden" name="search" th:value="${search}">
+                        
+                        <label class="quantity-label">주문 수량</label>
+                        <div class="quantity-control">
+                            <button type="button" class="qty-btn" id="minusBtn" onclick="changeQty(-1)">-</button>
+                            <input type="number" name="orderQuantity" id="quantity" class="qty-input" value="1" min="1" th:max="${product.stock}" readonly>
+                            <button type="button" class="qty-btn" id="plusBtn" onclick="changeQty(1)">+</button>
+                        </div>
 
-                    <div class="total-price-box">
-                        <span class="total-label">총 결제 금액</span>
-                        <span class="total-amount" id="totalPriceDisplay" 
-                              th:data-unit-price="${product.price}"
-                              th:text="${#numbers.formatInteger(product.price, 0, 'COMMA')} + '원'"></span>
-                    </div>
+                        <div class="total-price-box">
+                            <span class="total-label">총 결제 금액</span>
+                            <span class="total-amount" id="totalPriceDisplay" 
+                                  th:data-unit-price="${product.price}"
+                                  th:text="${#numbers.formatInteger(product.price, 0, 'COMMA')} + '원'"></span>
+                        </div>
 
-                    <button class="buy-btn" onclick="alert('구매 기능 준비중입니다.')">
-                        구매하기
-                    </button>
+                        <button type="submit" class="buy-btn">
+                            구매하기
+                        </button>
+                    </form>
                 </div>
 
                 <div class="order-section" th:if="${product.stock <= 0}">
@@ -139,11 +146,17 @@
         </div>
         
         <div style="margin-top: 3rem; text-align: center;">
-            <a th:href="@{/products/gallery}" style="color: var(--text-sub); text-decoration: none; font-size: 0.875rem;">갤러리로 돌아가기</a>
+            <a th:href="@{/products/gallery(page=${currentPage}, search=${search})}" style="color: var(--text-sub); text-decoration: none; font-size: 0.875rem;">갤러리로 돌아가기</a>
         </div>
     </div>
 
     <script th:inline="javascript">
+        /* 구매 완료 알림창 */
+        const message = [[${message}]];
+        if (message) {
+            alert(message);
+        }
+
         const maxStock = [[${product.stock}]];
         const unitPrice = [[${product.price}]];
         const qtyInput = document.getElementById('quantity');

@@ -19,8 +19,8 @@ public interface ProductService {
     // [2] 상품 조회 (Read)
     // ==========================================
 
-    /** 상품 목록 조회 */
-    ProductPageResponse findAll(int page, boolean activeOnly);
+    /** 상품 목록 조회 (검색 기능 포함) */
+    ProductPageResponse findAll(int page, boolean activeOnly, String search);
 
     /** 상품 상세 조회 */
     ProductResponse findById(Long productId);

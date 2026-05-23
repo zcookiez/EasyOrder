@@ -12,4 +12,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByDeleteYnFalse();
     Optional<Product> findByProductIdAndDeleteYnFalse(Long productId);
     Page<Product> findByDeleteYnFalse(Pageable pageable);
+    Page<Product> findByDeleteYnFalseAndNameContainingIgnoreCase(String name, Pageable pageable);
+    Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
 }

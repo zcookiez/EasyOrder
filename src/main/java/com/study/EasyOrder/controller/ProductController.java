@@ -42,33 +42,45 @@ public class ProductController {
 
     /** 상품 관리 목록 조회 (전체) */
     @GetMapping("/list")
-    public String productList(@RequestParam(defaultValue = "0") int page, Model model) {
-        ProductPageResponse products = productService.findAll(page, false);
+    public String productList(@RequestParam(defaultValue = "0") int page, 
+                              @RequestParam(defaultValue = "") String search, Model model) {
+        ProductPageResponse products = productService.findAll(page, false, search);
         model.addAttribute("products", products);
+        model.addAttribute("search", search);
         return "product/list";
     }
 
     /** 상품 갤러리 조회 (판매중만) */
     @GetMapping("/gallery")
-    public String productGallery(@RequestParam(defaultValue = "0") int page, Model model) {
-        ProductPageResponse products = productService.findAll(page, true);
+    public String productGallery(@RequestParam(defaultValue = "0") int page, 
+                                 @RequestParam(defaultValue = "") String search, Model model) {
+        ProductPageResponse products = productService.findAll(page, true, search);
         model.addAttribute("products", products);
+        model.addAttribute("search", search);
         return "product/gallery";
     }
 
     /** 상품 상세 조회 */
     @GetMapping("/detail/{productId}")
-    public String productDetail(@PathVariable Long productId, Model model) {
+    public String productDetail(@PathVariable Long productId, 
+                                @RequestParam(defaultValue = "0") int page,
+                                @RequestParam(defaultValue = "") String search, Model model) {
         ProductResponse product = productService.findById(productId);
         model.addAttribute("product", product);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("search", search);
         return "product/detail";
     }
 
     /** 구매 전용 상품 상세 조회 */
     @GetMapping("/gallery/{productId}")
-    public String productGalleryDetail(@PathVariable Long productId, Model model) {
+    public String productGalleryDetail(@PathVariable Long productId, 
+                                       @RequestParam(defaultValue = "0") int page,
+                                       @RequestParam(defaultValue = "") String search, Model model) {
         ProductResponse product = productService.findById(productId);
         model.addAttribute("product", product);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("search", search);
         return "product/gallery-detail";
     }
 
@@ -78,16 +90,31 @@ public class ProductController {
 
     /** 상품 수정 폼 이동 */
     @GetMapping("/edit/{productId}")
-    public String productEditForm(@PathVariable Long productId, Model model) {
+    public String productEditForm(@PathVariable Long productId, 
+                                  @RequestParam(defaultValue = "0") int page,
+                                  @RequestParam(defaultValue = "") String search, Model model) {
         ProductResponse product = productService.findById(productId);
         model.addAttribute("product", product);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("search", search);
         return "product/edit";
     }
 
     /** 상품 수정 처리 */
     @PostMapping("/edit/{productId}")
-    public String productUpdate(@PathVariable Long productId, @ModelAttribute ProductRequest request) {
+    public String productUpdate(@PathVariable Long productId, 
+                                @RequestParam(defaultValue = "0") int page,
+                                @RequestParam(defaultValue = "") String search,
+                                @ModelAttribute ProductRequest request,
+                                org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
         productService.update(productId, request);
+        
+        // 검색어와 페이지 번호를 안전하게 URL 파라미터로 추가
+        redirectAttributes.addAttribute("page", page);
+        if (search != null && !search.isEmpty()) {
+            redirectAttributes.addAttribute("search", search);
+        }
+        
         return "redirect:/products/detail/" + productId;
     }
 

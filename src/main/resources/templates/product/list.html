@@ -61,6 +61,7 @@
         
         .no-text { color: var(--text-sub); font-family: monospace; font-weight: 500; }
         .price-text { font-weight: 600; color: var(--primary-color); }
+        .text-center { text-align: center; }
 
         /* Badge Styles */
         .badge {
@@ -103,7 +104,7 @@
 </head>
 <body>
 
-    <div th:replace="~{fragments/header :: headerMain}"></div>
+    <div th:replace="~{fragments/header :: headerMain(showSearch=true)}"></div>
     <div th:replace="~{fragments/header :: navMenu(activeMenu='list')}"></div>
 
     <div class="container">
@@ -127,21 +128,22 @@
                         <thead>
                             <tr>
                                 <th style="width: 48px;"><input type="checkbox" id="selectAll" onclick="toggleAll(this)"></th>
-                                <th style="width: 60px;">No</th>
+                                <th style="width: 60px;" class="text-center">No</th>
                                 <th style="width: 100px;">판매상태</th>
                                 <th>상품명</th>
-                                <th>가격</th>
-                                <th>재고</th>
+                                <th class="text-center">가격</th>
+                                <th class="text-center">재고</th>
                                 <th>생성일</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr th:each="product, stat : ${products.content}" 
-                                th:onclick="|location.href='/products/detail/${product.productId}'|">
-                                <td th:onclick="event.stopPropagation()">
+                                th:data-url="@{/products/detail/{id}(id=${product.productId}, page=${products.currentPage}, search=${(search != null && !search.isEmpty()) ? search : ''})}"
+                                onclick="location.href=this.getAttribute('data-url')">
+                                <td onclick="event.stopPropagation()">
                                     <input type="checkbox" name="productIds" th:value="${product.productId}" class="item-checkbox">
                                 </td>
-                                <td>
+                                <td class="text-center">
                                     <span class="no-text" th:text="${products.currentPage * 10 + stat.count}"></span>
                                 </td>
                                 <td>
@@ -149,9 +151,12 @@
                                     <span th:if="${product.deleteYn}" class="badge badge-stopped">판매중지</span>
                                 </td>
                                 <td th:text="${product.name}" style="font-weight: 500;"></td>
-                                <td><span class="price-text" th:text="${#numbers.formatInteger(product.price, 0, 'COMMA')} + '원'"></span></td>
-                                <td><span th:text="${product.stock} + '개'"></span></td>
+                                <td class="text-center"><span class="price-text" th:text="${#numbers.formatInteger(product.price, 0, 'COMMA')} + '원'"></span></td>
+                                <td class="text-center"><span th:text="${product.stock} + '개'"></span></td>
                                 <td style="color: var(--text-sub);" th:text="${product.createdAt != null ? #temporals.format(product.createdAt, 'yyyy-MM-dd HH:mm') : '-'}"></td>
+                            </tr>
+                            <tr th:if="${products.totalElements == 0}">
+                                <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-sub);">검색 결과나 등록된 상품이 존재하지 않습니다.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -163,9 +168,11 @@
                     전체 <span th:text="${products.totalElements}"></span>개 중 현재 <span th:text="${products.currentPage + 1}"></span>페이지
                 </div>
                 <nav class="pagination-nav">
-                    <a th:href="${products.currentPage > 0 ? '/products/list?page=' + (products.currentPage - 1) : 'javascript:void(0)'}" th:classappend="${products.currentPage == 0} ? 'disabled' : ''">&lsaquo;</a>
-                    <a th:each="i : ${#numbers.sequence(0, products.totalPages - 1)}" th:href="@{/products/list(page=${i})}" th:text="${i + 1}" th:classappend="${i == products.currentPage} ? 'active' : ''"></a>
-                    <a th:href="${products.currentPage < products.totalPages - 1 ? '/products/list?page=' + (products.currentPage + 1) : 'javascript:void(0)'}" th:classappend="${products.currentPage >= products.totalPages - 1} ? 'disabled' : ''">&rsaquo;</a>
+                    <a th:href="${products.currentPage > 0 ? '/products/list?page=' + (products.currentPage - 1) + (search != null ? '&search=' + search : '') : 'javascript:void(0)'}" th:classappend="${products.currentPage == 0} ? 'disabled' : ''">&lsaquo;</a>
+                    <a th:each="i : ${#numbers.sequence(0, products.totalPages - 1)}" 
+                       th:href="@{/products/list(page=${i}, search=${search})}" 
+                       th:text="${i + 1}" th:classappend="${i == products.currentPage} ? 'active' : ''"></a>
+                    <a th:href="${products.currentPage < products.totalPages - 1 ? '/products/list?page=' + (products.currentPage + 1) + (search != null ? '&search=' + search : '') : 'javascript:void(0)'}" th:classappend="${products.currentPage >= products.totalPages - 1} ? 'disabled' : ''">&rsaquo;</a>
                 </nav>
             </div>
         </main>

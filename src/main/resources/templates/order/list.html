@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EasyOrder | 주문 관리</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style th:replace="~{fragments/header :: header-styles}"></style>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-size: 1.875rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .page-header p {
+            color: var(--text-sub);
+            font-size: 0.875rem;
+            margin: 0.5rem 0 0 0;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .table-container { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background-color: #f8fafc; padding: 0.75rem 1.5rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-sub); border-bottom: 1px solid var(--border-color); }
+        td { padding: 1rem 1.5rem; font-size: 0.875rem; border-bottom: 1px solid var(--border-color); }
+        tr:last-child td { border-bottom: none; }
+        
+        .no-text { color: var(--text-sub); font-family: monospace; font-weight: 500; }
+        .price-text { font-weight: 600; color: var(--primary-color); }
+        .quantity-text { font-weight: 500; }
+        .text-center { text-align: center; }
+
+    </style>
+</head>
+<body>
+
+    <div th:replace="~{fragments/header :: headerMain(showSearch=true)}"></div>
+    <div th:replace="~{fragments/header :: navMenu(activeMenu='orderList')}"></div>
+
+    <div class="container">
+        <header class="page-header">
+            <h1>주문 관리</h1>
+            <p>고객의 주문 내역을 실시간으로 확인할 수 있습니다.</p>
+        </header>
+
+        <main class="card">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 100px;" class="text-center">주문번호</th>
+                            <th>상품명</th>
+                            <th class="text-center">주문수량</th>
+                            <th>총 결제금액</th>
+                            <th>주문일시</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="order : ${orders.content}">
+                            <td class="text-center">
+                                <span class="no-text" th:text="${order.orderId}"></span>
+                            </td>
+                            <td th:text="${order.productName}" style="font-weight: 500;"></td>
+                            <td class="text-center">
+                                <span class="quantity-text" th:text="${order.orderQuantity} + '개'"></span>
+                            </td>
+                            <td>
+                                <span class="price-text" th:text="${#numbers.formatInteger(order.totalPrice, 0, 'COMMA')} + '원'"></span>
+                            </td>
+                            <td style="color: var(--text-sub);" th:text="${#temporals.format(order.orderDate, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                        </tr>
+                        <tr th:if="${orders.totalElements == 0}">
+                            <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-sub);">주문 내역이 존재하지 않습니다.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination-container" th:if="${orders.totalPages > 0}">
+                <div class="pagination-info">
+                    전체 <span th:text="${orders.totalElements}"></span>건 중 현재 <span th:text="${orders.currentPage + 1}"></span>페이지
+                </div>
+                <nav class="pagination-nav">
+                    <a th:href="${orders.currentPage > 0 ? '/orders/list?page=' + (orders.currentPage - 1) + (search != null ? '&search=' + search : '') : 'javascript:void(0)'}" th:classappend="${orders.currentPage == 0} ? 'disabled' : ''">&lsaquo;</a>
+                    <a th:each="i : ${#numbers.sequence(0, orders.totalPages - 1)}" 
+                       th:href="@{/orders/list(page=${i}, search=${search})}" 
+                       th:text="${i + 1}" th:classappend="${i == orders.currentPage} ? 'active' : ''"></a>
+                    <a th:href="${orders.currentPage < orders.totalPages - 1 ? '/orders/list?page=' + (orders.currentPage + 1) + (search != null ? '&search=' + search : '') : 'javascript:void(0)'}" th:classappend="${orders.currentPage >= orders.totalPages - 1} ? 'disabled' : ''">&rsaquo;</a>
+                </nav>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>
