@@ -1,5 +1,4 @@
-# EasyOrder (이지오더)
-
+# EasyOrder
 Spring Boot와 Thymeleaf를 활용한 심플하고 직관적인 상품 관리 및 주문 시스템입니다.
 
 ## 🚀 프로젝트 개요
