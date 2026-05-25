@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductRequest {
+    // productId 제외 → "사용자가 입력해야 하는 값만” 받는 게 일반적이기 때문
     @Schema(description = "상품명", example = "아메리카노")
     private String name;
     

@@ -29,8 +29,10 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public void create(OrderRequest request) {
-        // 1. 상품 조회
-        Product product = productRepository.findById(request.getProductId())
+
+        // 1. 상품 조회 (자물쇠를 걸어서 원자적 처리가 가능하도록 함)
+        // Product product = productRepository.findById(request.getProductId())
+        Product product = productRepository.findByIdWithLock(request.getProductId())
                 .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다."));
 
         // 2. 재고 확인
