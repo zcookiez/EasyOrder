@@ -22,7 +22,7 @@ EasyOrder는 상품의 등록, 수정, 판매 상태 관리(Soft Delete) 및 고
 - **상태 유지**: 페이징 및 검색 필터 상태를 유지하며 상세/수정 페이지 이동 가능
 
 ### 2. 상품 갤러리 
-- **상품 목록**: 판매 중인 상품을 카드 형태로 시각화 (8개 단위 페이징 적용)
+- **상품 목록**: 판매 중인 상품을 카드 형태로 시각화
 - **상세 보기**: Tumblbug 스타일의 세련된 상품 상세 레이아웃 및 스크롤 고정 이미지 적용
 - **실시간 구매**: 상세 페이지에서 수량 선택 및 즉시 주문 처리 (재고 차감 로직 포함)
 
@@ -44,16 +44,16 @@ EasyOrder는 개발 및 테스트 편의를 위해 Swagger UI를 제공합니다
 ### 2. 주요 테스트 항목
 
 #### 📦 상품 API (Product)
-- `GET /api/products`: 상품 목록 조회 (페이지, 검색어, 판매상태 필터링 가능)
+- `GET /api/products`: 상품 목록 조회 
 - `GET /api/products/{id}`: 특정 상품의 상세 정보 확인
-- `POST /api/products`: 신규 상품 등록 (JSON 데이터 전송)
+- `POST /api/products`: 신규 상품 등록
 - `PUT /api/products/{id}`: 상품 정보 수정
 - `POST /api/products/delete`: 여러 상품을 선택하여 판매 중지
 - `POST /api/products/restore`: 판매 중지된 상품들을 다시 판매 중으로 복구
 
 #### 📝 주문 API (Order)
-- `GET /api/orders`: 전체 주문 내역 확인 (상품명 검색 지원)
-- `POST /api/orders`: 상품 구매 처리 (재고 차감 및 주문 생성)
+- `GET /api/orders`: 전체 주문 내역 확인
+- `POST /api/orders`: 상품 구매 처리 
 
 ### 3. 테스트 방법
 1. Swagger UI 접속 후 원하는 API 항목을 클릭합니다.
